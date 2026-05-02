@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – TaskFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Good day, <span>{{ current_user.name.split()[0] }}</span> 👋</div>
+    <p style="color:var(--muted); font-size:.88rem; margin-top:4px;">Here's what's happening with your projects.</p>
+  </div>
+  {% if current_user.role == 'admin' %}
+  <a href="{{ url_for('new_project') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i> New Project
+  </a>
+  {% endif %}
+</div>
+
+<!-- STATS -->
+<div class="grid-4" style="margin-bottom:32px;">
+  <div class="stat-card accent">
+    <div class="stat-value">{{ stats.total_projects }}</div>
+    <div class="stat-label">Total Projects</div>
+  </div>
+  <div class="stat-card success">
+    <div class="stat-value">{{ stats.total_tasks }}</div>
+    <div class="stat-label">My Tasks</div>
+  </div>
+  <div class="stat-card warn">
+    <div class="stat-value">{{ stats.completed }}</div>
+    <div class="stat-label">Completed</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="stat-value">{{ stats.overdue }}</div>
+    <div class="stat-label">Overdue</div>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<div style="margin-bottom:32px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+    <h2 style="font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700;">Projects</h2>
+  </div>
+
+  {% if projects %}
+  <div class="grid-3">
+    {% for project in projects %}
+    <a href="{{ url_for('project_detail', project_id=project.id) }}" class="project-card">
+      <div class="project-card-title">{{ project.name }}</div>
+      <div class="project-card-desc">{{ project.description or 'No description provided.' }}</div>
+      <div class="progress-bar-wrap" style="margin-bottom:10px;">
+        <div class="progress-bar-fill" style="width:{{ project.progress }}%;"></div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:.78rem; color:var(--muted);">{{ project.done_count }}/{{ project.task_count }} tasks</span>
+        <span style="font-size:.78rem; color:var(--accent); font-weight:600;">{{ project.progress }}%</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state card">
+    <i class="bi bi-folder2-open"></i>
+    <p>No projects yet.{% if current_user.role == 'admin' %} <a href="{{ url_for('new_project') }}" style="color:var(--accent);">Create your first one →</a>{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- MY TASKS -->
+<div>
+  <h2 style="font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:16px;">My Tasks</h2>
+  {% if my_tasks %}
+  <div class="card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>Project</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Due Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in my_tasks %}
+        <tr>
+          <td style="font-weight:500;">
+            {{ task.title }}
+            {% if task.is_overdue %}<span class="badge badge-overdue" style="margin-left:6px;">Overdue</span>{% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('project_detail', project_id=task.project_id) }}" style="color:var(--accent); text-decoration:none; font-size:.85rem;">
+              {{ task.project.name }}
+            </a>
+          </td>
+          <td><span class="badge badge-{{ task.priority }}">{{ task.priority.capitalize() }}</span></td>
+          <td><span class="badge badge-{{ task.status }}">{{ task.status_label }}</span></td>
+          <td style="color:var(--muted); font-size:.85rem;">
+            {% if task.due_date %}{{ task.due_date.strftime('%b %d, %Y') }}{% else %}—{% endif %}
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('update_task_status', task_id=task.id) }}" style="display:inline;">
+              {% if task.status == 'todo' %}
+                <input type="hidden" name="status" value="in_progress"/>
+                <button class="btn btn-outline btn-sm" type="submit"><i class="bi bi-play-fill"></i> Start</button>
+              {% elif task.status == 'in_progress' %}
+                <input type="hidden" name="status" value="done"/>
+                <button class="btn btn-outline btn-sm" type="submit" style="color:var(--accent3)"><i class="bi bi-check-lg"></i> Done</button>
+              {% else %}
+                <span style="color:var(--accent3); font-size:.82rem;"><i class="bi bi-check-circle-fill"></i> Complete</span>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state card">
+    <i class="bi bi-check2-all"></i>
+    <p>No tasks assigned to you yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

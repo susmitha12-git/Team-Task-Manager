@@ -1,0 +1,64 @@
+-- ============================================================
+--  TaskFlow – Team Task Manager
+--  Run this in MySQL Workbench before starting the Flask app
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS team_task_manager
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE team_task_manager;
+
+-- ── USERS ────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS users (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(100)  NOT NULL,
+    email      VARCHAR(150)  NOT NULL UNIQUE,
+    password   VARCHAR(255)  NOT NULL,
+    role       ENUM('admin','member') NOT NULL DEFAULT 'member',
+    created_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_users_email (email)
+) ENGINE=InnoDB;
+
+-- ── PROJECTS ─────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS projects (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(150) NOT NULL,
+    description TEXT,
+    owner_id    INT          NOT NULL,
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_projects_owner (owner_id)
+) ENGINE=InnoDB;
+
+-- ── PROJECT MEMBERS ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS project_members (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    user_id    INT NOT NULL,
+    joined_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_project_member (project_id, user_id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ── TASKS ────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS tasks (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    title       VARCHAR(200) NOT NULL,
+    description TEXT,
+    project_id  INT          NOT NULL,
+    assigned_to INT,
+    created_by  INT          NOT NULL,
+    status      ENUM('todo','in_progress','done') NOT NULL DEFAULT 'todo',
+    priority    ENUM('low','medium','high')        NOT NULL DEFAULT 'medium',
+    due_date    DATE,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id)  REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to) REFERENCES users(id)    ON DELETE SET NULL,
+    FOREIGN KEY (created_by)  REFERENCES users(id),
+    INDEX idx_tasks_project    (project_id),
+    INDEX idx_tasks_assigned   (assigned_to),
+    INDEX idx_tasks_status     (status)
+) ENGINE=InnoDB;

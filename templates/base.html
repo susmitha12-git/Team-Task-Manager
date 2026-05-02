@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}TaskFlow{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #151820;
+      --surface2:  #1c2030;
+      --border:    #252a38;
+      --accent:    #6c63ff;
+      --accent2:   #ff6584;
+      --accent3:   #43e97b;
+      --text:      #e8eaf6;
+      --muted:     #7b82a0;
+      --danger:    #ff4d6d;
+      --warn:      #ffc947;
+      --radius:    12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────── */
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: 240px; height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 24px 0; z-index: 100;
+      transition: transform .3s ease;
+    }
+    .sidebar-logo {
+      padding: 0 24px 24px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem; font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo span { color: var(--text); }
+    .nav-section { padding: 16px 12px 0; flex: 1; }
+    .nav-label {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 1.5px;
+      color: var(--muted); text-transform: uppercase;
+      padding: 0 12px 8px;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      color: var(--muted); text-decoration: none;
+      font-size: 0.9rem; font-weight: 500;
+      transition: all .2s;
+      margin-bottom: 2px;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--surface2); color: var(--text);
+    }
+    .nav-link.active { color: var(--accent); }
+    .nav-link i { font-size: 1.1rem; width: 20px; }
+    .sidebar-user {
+      margin: 0 12px 0;
+      padding: 16px 12px;
+      border-top: 1px solid var(--border);
+    }
+    .user-card {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+    }
+    .user-info { flex: 1; overflow: hidden; }
+    .user-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role {
+      font-size: 0.7rem; color: var(--muted);
+      background: var(--surface2); padding: 2px 8px;
+      border-radius: 20px; display: inline-block; margin-top: 2px;
+    }
+
+    /* ── MAIN CONTENT ────────────────────────── */
+    .main-content {
+      margin-left: 240px;
+      min-height: 100vh;
+      padding: 32px;
+    }
+
+    /* ── PAGE HEADER ─────────────────────────── */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem; font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .page-title span { color: var(--accent); }
+
+    /* ── CARDS ───────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .card-body { padding: 20px; }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 0.95rem;
+    }
+
+    /* ── STAT CARDS ──────────────────────────── */
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+    }
+    .stat-card.accent::after  { background: var(--accent); }
+    .stat-card.success::after { background: var(--accent3); }
+    .stat-card.danger::after  { background: var(--danger); }
+    .stat-card.warn::after    { background: var(--warn); }
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.2rem; font-weight: 800;
+      line-height: 1;
+    }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── BUTTONS ─────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 500;
+      border: none; cursor: pointer;
+      text-decoration: none; transition: all .2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #5a53e0; color: #fff; }
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--surface2); color: var(--text); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #e0002e; color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-icon { padding: 8px; border-radius: 8px; }
+
+    /* ── FORMS ───────────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block; font-size: 0.82rem; font-weight: 600;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%; padding: 10px 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      transition: border-color .2s;
+    }
+    .form-control:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,.15);
+    }
+    .form-control option { background: var(--surface2); }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+
+    /* ── BADGES ──────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.3px;
+    }
+    .badge-todo        { background: rgba(123,130,160,.2); color: var(--muted); }
+    .badge-in_progress { background: rgba(108,99,255,.2);  color: var(--accent); }
+    .badge-done        { background: rgba(67,233,123,.2);  color: var(--accent3); }
+    .badge-low         { background: rgba(67,233,123,.15); color: var(--accent3); }
+    .badge-medium      { background: rgba(255,201,71,.15); color: var(--warn); }
+    .badge-high        { background: rgba(255,77,109,.15); color: var(--danger); }
+    .badge-overdue     { background: rgba(255,77,109,.2);  color: var(--danger); }
+    .badge-admin       { background: rgba(108,99,255,.2);  color: var(--accent); }
+    .badge-member      { background: rgba(123,130,160,.2); color: var(--muted); }
+
+    /* ── TABLES ──────────────────────────────── */
+    .table { width: 100%; border-collapse: collapse; }
+    .table th {
+      padding: 10px 16px; font-size: 0.72rem;
+      font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    .table td {
+      padding: 14px 16px; font-size: 0.88rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .table tr:last-child td { border-bottom: none; }
+    .table tr:hover td { background: var(--surface2); }
+
+    /* ── PROGRESS BAR ────────────────────────── */
+    .progress-bar-wrap {
+      background: var(--surface2); border-radius: 99px;
+      height: 6px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .4s ease;
+    }
+
+    /* ── ALERTS ──────────────────────────────── */
+    .alert {
+      padding: 12px 16px; border-radius: 8px;
+      font-size: 0.88rem; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .alert-success { background: rgba(67,233,123,.1); border: 1px solid rgba(67,233,123,.3); color: var(--accent3); }
+    .alert-danger  { background: rgba(255,77,109,.1);  border: 1px solid rgba(255,77,109,.3);  color: var(--danger); }
+    .alert-info    { background: rgba(108,99,255,.1); border: 1px solid rgba(108,99,255,.3); color: var(--accent); }
+    .alert-warning { background: rgba(255,201,71,.1); border: 1px solid rgba(255,201,71,.3); color: var(--warn); }
+
+    /* ── GRIDS ───────────────────────────────── */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+    /* ── PROJECT CARD ────────────────────────── */
+    .project-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      text-decoration: none; color: var(--text);
+      display: block; transition: all .2s;
+      position: relative; overflow: hidden;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transform: scaleX(0); transform-origin: left;
+      transition: transform .3s ease;
+    }
+    .project-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .project-card:hover::before { transform: scaleX(1); }
+    .project-card-title {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 1rem; margin-bottom: 6px;
+    }
+    .project-card-desc { font-size: 0.82rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+
+    /* ── KANBAN ──────────────────────────────── */
+    .kanban { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .kanban-col {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .kanban-col-header {
+      padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+    }
+    .kanban-col-header .dot {
+      width: 8px; height: 8px; border-radius: 50%; margin-right: 8px;
+      display: inline-block;
+    }
+    .kanban-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 80px; }
+    .task-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px;
+    }
+    .task-card-title { font-size: 0.88rem; font-weight: 600; margin-bottom: 8px; }
+    .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: .4; }
+    .empty-state p { font-size: 0.88rem; }
+
+    @media (max-width: 1100px) {
+      .grid-4 { grid-template-columns: repeat(2,1fr); }
+      .grid-3 { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-content { margin-left: 0; padding: 16px; }
+      .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      .kanban { grid-template-columns: 1fr; }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<aside class="sidebar">
+  <div class="sidebar-logo">Task<span>Flow</span></div>
+  <nav class="nav-section">
+    <div class="nav-label">Main</div>
+    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-grid-1x2"></i> Dashboard
+    </a>
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('new_project') }}" class="nav-link">
+      <i class="bi bi-folder-plus"></i> New Project
+    </a>
+    {% endif %}
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-card">
+      <div class="user-avatar">{{ current_user.name[0].upper() }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ current_user.name }}</div>
+        <span class="user-role">{{ current_user.role }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-icon btn-outline btn-sm" title="Logout">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</aside>
+{% endif %}
+
+<main class="main-content {% if not current_user.is_authenticated %}no-sidebar{% endif %}">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<style>
+  .no-sidebar { margin-left: 0 !important; }
+</style>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

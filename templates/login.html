@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Login – TaskFlow{% endblock %}
+
+{% block extra_head %}
+<style>
+  body { display: flex; align-items: center; justify-content: center; }
+  .auth-wrap {
+    width: 100%; max-width: 420px;
+    padding: 40px; margin: auto;
+  }
+  .auth-logo {
+    font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+    color: var(--accent); text-align: center; margin-bottom: 8px;
+  }
+  .auth-logo span { color: var(--text); }
+  .auth-sub { text-align: center; color: var(--muted); font-size: 0.88rem; margin-bottom: 36px; }
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+  }
+  .auth-footer { text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--muted); }
+  .auth-footer a { color: var(--accent); text-decoration: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-logo">Task<span>Flow</span></div>
+  <p class="auth-sub">Sign in to your workspace</p>
+
+  <div class="auth-card">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}"><i class="bi bi-exclamation-circle"></i> {{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" class="form-control" placeholder="you@example.com" required autofocus/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="••••••••" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+    </form>
+  </div>
+
+  <p class="auth-footer">
+    Don't have an account? <a href="{{ url_for('signup') }}">Create one</a>
+  </p>
+</div>
+{% endblock %}
